@@ -1,0 +1,4 @@
+image.iso
+image/kernel
+obj/*
+bin/*

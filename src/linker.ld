@@ -1,17 +1,22 @@
 OUTPUT_FORMAT("elf64-x86-64")
 ENTRY(entry)
 
+KERNEL_LMA = 0x100000;
+
 SECTIONS
 {
-    .grub_sig 0xFFFFFFFF80100000 : AT(0x100000)
-    {
-        *(.grub_sig)
-    }
-    .text :
+    . = KERNEL_LMA;
+
+    .bootstrap :
     {
         obj/bootstrap.o(.text)
+    }
+
+    .text :
+    {
         *(.text)
     }
+
     .data :
     {
         *(.data)
@@ -20,6 +25,7 @@ SECTIONS
     {
         *(.bss)
         *(COMMON)
+        _end_bss = .;
     }
     /DISCARD/ :
     {

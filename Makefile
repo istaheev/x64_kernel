@@ -11,7 +11,7 @@ OBJS = $(C_OBJS) $(S_OBJS)
 
 # Compilation flags
 
-CFLAGS = -nostdlib -fno-exceptions -ffreestanding -mcmodel=kernel
+CFLAGS = -nostdlib -fno-exceptions -ffreestanding -fno-stack-protector -mno-mmx -mno-sse -mno-sse2 -mno-sse3 -mno-3dnow -mcmodel=kernel -Iinclude
 LDFLAGS = -nostdlib -T src/linker.ld -n
 
 # Rules
