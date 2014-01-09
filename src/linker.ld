@@ -27,15 +27,14 @@ SECTIONS
         *(.data)
     }
 
-    _load_end = . - KERNEL_VMA;
+    __link_load_end = . - KERNEL_VMA;
 
     .bss ALIGN(0x1000) : AT(ADDR(.bss) - KERNEL_VMA)
     {
         *(.bss)
-        _end_bss = .;
     }
 
-    _bss_end = . - KERNEL_VMA;
+    __link_bss_end = . - KERNEL_VMA;
 
     /DISCARD/ :
     {
