@@ -2,6 +2,7 @@ OUTPUT_FORMAT("elf64-x86-64")
 ENTRY(entry)
 
 KERNEL_LMA = 0x100000;
+KERNEL_VMA = 0xFFFFFFFF80100000;
 
 SECTIONS
 {
@@ -10,23 +11,32 @@ SECTIONS
     .bootstrap :
     {
         obj/bootstrap.o(.text)
+        obj/bootstrap.o(COMMON)
     }
 
-    .text :
+    . += KERNEL_VMA;
+
+    .text ALIGN(0x1000) : AT(ADDR(.text) - KERNEL_VMA)
     {
         *(.text)
+        *(EXCLUDE_FILE(*obj/bootstrap.o) .text)
     }
 
-    .data :
+    .data ALIGN(0x1000) : AT(ADDR(.data) - KERNEL_VMA)
     {
         *(.data)
     }
-    .bss :
+
+    _load_end = . - KERNEL_VMA;
+
+    .bss ALIGN(0x1000) : AT(ADDR(.bss) - KERNEL_VMA)
     {
         *(.bss)
-        *(COMMON)
         _end_bss = .;
     }
+
+    _bss_end = . - KERNEL_VMA;
+
     /DISCARD/ :
     {
         *(.comment)
