@@ -2,7 +2,7 @@ OUTPUT_FORMAT("elf64-x86-64")
 ENTRY(entry)
 
 KERNEL_LMA = 0x100000;
-KERNEL_VMA = 0xFFFFFFFF80100000;
+KERNEL_VMA = 0xFFFFFFFF80000000;
 
 SECTIONS
 {
@@ -12,6 +12,24 @@ SECTIONS
     {
         obj/bootstrap.o(.text)
         obj/bootstrap.o(COMMON)
+    
+        /* placeholders for paging structures */
+        
+        /* . = ALIGN(0x1000); */
+        
+        /* _page_ml4 = .; */      /* Single PML4 table */
+        /* . += 0x1000; */
+
+        /* _page_dir_ptr = .; */  /* Single pade-directory-pointer table */
+        /* . += 0x1000; */
+
+        /* _page_dir = .; */      /* Single page-directory table */
+        /* . += 0x1000; */
+
+        /* _page_table = .; */    /* 512 page-table entries */
+        /* . += 512*0x1000; */
+
+        /* _page_data_size = . - _page_ml4; */
     }
 
     . += KERNEL_VMA;

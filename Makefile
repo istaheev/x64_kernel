@@ -11,8 +11,21 @@ OBJS = $(C_OBJS) $(S_OBJS)
 
 # Compilation flags
 
-CFLAGS = -nostdlib -fno-exceptions -ffreestanding -fno-stack-protector -mno-mmx -mno-sse -mno-sse2 -mno-sse3 -mno-3dnow -mcmodel=kernel -Iinclude
-LDFLAGS = -nostdlib -T src/linker.ld -n
+CC = gcc
+CFLAGS = -g \
+	     -nostdlib \
+         -fno-exceptions \
+         -ffreestanding \
+         -fno-stack-protector \
+         -mno-red-zone \
+         -mno-mmx \
+         -mno-sse \
+         -mno-sse2 \
+         -mno-sse3 \
+         -mno-3dnow \
+         -mcmodel=kernel \
+         -Iinclude
+LDFLAGS = -nostdlib -z max-page-size=0x1000 -n -T src/linker.ld
 
 # Rules
 
@@ -22,10 +35,10 @@ bin/kernel: src/linker.ld Makefile $(OBJS)
 	ld $(LDFLAGS) -o bin/kernel $(OBJS)
 
 obj/%.o: src/%.c
-	gcc $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 obj/%.o: src/%.S
-	gcc $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 image: bin/kernel image/boot/grub/grub.cfg
 	cp bin/kernel image/kernel
