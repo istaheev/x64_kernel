@@ -23,6 +23,15 @@ void print(const char* str)
 		putchar(*s);
 }
 
+/* Entry point for kernel, called from bootstrap.S 
+   after preparing of the environment.
+
+   Machine state at this stage:
+   1. CPU is in the long mode
+   2. Interrupts are disabled, IDT is not set up
+   3. Paging is set up so the first 1Gb of of memory is identity
+      mapped to itself and is also available from 0xFFFFFFFF80000000
+*/      
 void kmain (void)
 {
 	char* p = (char*)0xB8000;

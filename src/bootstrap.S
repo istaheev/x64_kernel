@@ -126,6 +126,8 @@ code_64:
         movl    %eax, %es
         movl    %eax, %ss
         
+/* Call kernel entry point located in the higher half memory */
+
         call    kmain
 
 halt:   hlt
