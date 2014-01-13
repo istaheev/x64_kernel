@@ -12,24 +12,6 @@ SECTIONS
     {
         obj/bootstrap.o(.text)
         obj/bootstrap.o(COMMON)
-    
-        /* placeholders for paging structures */
-        
-        /* . = ALIGN(0x1000); */
-        
-        /* _page_ml4 = .; */      /* Single PML4 table */
-        /* . += 0x1000; */
-
-        /* _page_dir_ptr = .; */  /* Single pade-directory-pointer table */
-        /* . += 0x1000; */
-
-        /* _page_dir = .; */      /* Single page-directory table */
-        /* . += 0x1000; */
-
-        /* _page_table = .; */    /* 512 page-table entries */
-        /* . += 512*0x1000; */
-
-        /* _page_data_size = . - _page_ml4; */
     }
 
     . += KERNEL_VMA;
@@ -38,6 +20,7 @@ SECTIONS
     {
         *(.text)
         *(EXCLUDE_FILE(*obj/bootstrap.o) .text)
+        *(.rodata)
     }
 
     .data ALIGN(0x1000) : AT(ADDR(.data) - KERNEL_VMA)

@@ -1,6 +1,7 @@
 #define ASM_FILE 1
 
 #include <multiboot.h>
+#include <kernel.h>
 
 #define MULTIBOOT_HEADER_FLAGS  0x00010003
 
@@ -113,7 +114,7 @@ page_tables_ready:
 /* Now we are in 64-bit compatibility mode, to enter "normal" long mode 
    proper gdt should be loaded */
 
-        lgdt    gdt_64_ptr
+        lgdt    gdt_64_ptr_compatibility_mode
         ljmp    $0x08, $code_64
 
 /* 64-bit code area */
@@ -121,6 +122,8 @@ page_tables_ready:
         .code64
 
 code_64:
+        lgdt    gdt_64_ptr
+        
         movl    $0x10, %eax
         movl    %eax, %ds
         movl    %eax, %es
@@ -140,18 +143,13 @@ gdt_32: /* GDT used in 32-bit protected mode immediately after multibooting */
         .quad   0x00CF9A000000FFFF
         .quad   0x00CF92000000FFFF
 
-gdt_64:
-        .quad   0x0000000000000000
-        .quad   0x00A09A0000000000
-        .quad   0x00A0920000000000
-
 gdt_32_ptr:
         .word   23
         .long   gdt_32
 
-gdt_64_ptr:
+gdt_64_ptr_compatibility_mode:
         .word   23
-        .long   gdt_64
+        .long   gdt_64 - KERNEL_VMA
 
         .align  4096
 
@@ -162,3 +160,16 @@ gdt_64_ptr:
 
         // stack
         .comm   stack, STACK_SIZE
+
+        .data
+
+        .align 8
+
+gdt_64:
+        .quad   0x0000000000000000
+        .quad   0x00A09A0000000000
+        .quad   0x00A0920000000000
+
+gdt_64_ptr:
+        .word   23
+        .quad   gdt_64
