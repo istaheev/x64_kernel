@@ -11,7 +11,6 @@ SECTIONS
     .bootstrap :
     {
         obj/bootstrap.o(.text)
-        obj/bootstrap.o(COMMON)
     }
 
     . += KERNEL_VMA;

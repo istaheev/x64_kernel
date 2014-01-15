@@ -1,0 +1,4 @@
+display_library: sdl
+ata0-master: type=cdrom, path=image.iso, status=inserted
+boot: cdrom
+magic_break: enabled=1

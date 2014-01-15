@@ -5,8 +5,6 @@
 
 #define MULTIBOOT_HEADER_FLAGS  0x00010003
 
-#define STACK_SIZE      0x4000
-
         .text
 
         .globl entry, multiboot_entry
@@ -52,33 +50,22 @@ gdt_32_ready:
         mov     %ax, %es
         mov     %ax, %ss
 
-/* Initialize the stack pointer */
-
-        movl     $(stack + STACK_SIZE), %esp
-
-/* Clear page tables */
-        
-        movl    $page_ml4, %edi
-        xorl    %eax, %eax
-        movl    $4096, %ecx
-        rep;    stosl
-
 /* Setup page tables: identity map for first 1Gb 
    and map 1Gb from 0xFFFFFFFF80000000 to the first 1 Gb */
         
         movl    $page_dir_ptr, %eax
         orl     $3, %eax
-        movl    %eax, page_ml4                  /* page_ml4[0] = page_dir_ptr */
-        movl    %eax, page_ml4+0xff8            /* page_ml4[511] = page_dir_ptr */
+        movl    %eax, page_ml4              /* page_ml4[0] = page_dir_ptr */
+        movl    %eax, page_ml4 + 0xff8      /* page_ml4[511] = page_dir_ptr */
 
         movl    $page_dir, %eax
         orl     $3, %eax
-        movl    %eax, page_dir_ptr              /* page_dir_ptr[0] = page_dir */
-        movl    %eax, page_dir_ptr+0xff0        /* page_dir_ptr[510] = page_dir */
+        movl    %eax, page_dir_ptr          /* page_dir_ptr[0] = page_dir */
+        movl    %eax, page_dir_ptr + 0xff0  /* page_dir_ptr[510] = page_dir */
 
         movl    $512, %ecx
         movl    $page_dir, %esi
-        movl    $0x000083, %eax                 /* PAGE_PRESENT | PAGE_WRITE | PAGE_1MB */
+        movl    $0x000083, %eax             /* PAGE_PRESENT | PAGE_WRITE | PAGE_1MB */
 fill_page_dir_loop:
         movl    %eax, (%esi)
         addl    $0x200000, %eax
@@ -112,7 +99,8 @@ page_tables_ready:
         movl    %eax, %cr0
 
 /* Now we are in 64-bit compatibility mode, to enter "normal" long mode 
-   proper gdt should be loaded */
+   proper gdt should be loaded. Since we are not in 64-bit memory yet,
+   physical address of gdt_64 is used. */
 
         lgdt    gdt_64_ptr_compatibility_mode
         ljmp    $0x08, $code_64
@@ -122,13 +110,21 @@ page_tables_ready:
         .code64
 
 code_64:
+        // Load same GDT but using address in higher-half memory 
+        // so lower memory can be unmapped later
         lgdt    gdt_64_ptr
-        
+
         movl    $0x10, %eax
         movl    %eax, %ds
         movl    %eax, %es
         movl    %eax, %ss
-        
+        movl    %eax, %fs
+        movl    %eax, %gs
+
+/* Initialize the kernel stack */
+
+        movq    $(kernel_stack + KERNEL_STACK_SIZE), %rsp
+
 /* Call kernel entry point located in the higher half memory */
 
         call    kmain
@@ -137,6 +133,8 @@ halt:   hlt
         jmp halt
 
 /* Global descriptor tables */
+
+        .align 8
 
 gdt_32: /* GDT used in 32-bit protected mode immediately after multibooting */
         .quad   0x0000000000000000
@@ -149,17 +147,18 @@ gdt_32_ptr:
 
 gdt_64_ptr_compatibility_mode:
         .word   23
-        .long   gdt_64 - KERNEL_VMA
+        .long   PHYS_ADDR(gdt_64)
 
-        .align  4096
+        .align 4096
 
-        // Page tables
-        .comm   page_ml4,       0x1000
-        .comm   page_dir_ptr,   0x1000
-        .comm   page_dir,       0x1000
+/* Paging structures used to establish initial memory mapping before the kernel is started */
 
-        // stack
-        .comm   stack, STACK_SIZE
+page_ml4:
+        .fill   0x1000, 8, 0
+page_dir_ptr:
+        .fill   0x1000, 8, 0
+page_dir:
+        .fill   0x1000, 8, 0
 
         .data
 

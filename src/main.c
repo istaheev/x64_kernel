@@ -2,8 +2,18 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include <kernel.h>
+
 static char* videomem = (char*)0xB8000;
 static size_t screen_x = 0, screen_y = 0;
+
+/*** Kernel data area begin ***/
+
+// Kernel stack, initialized in bootstrap.S before call to kmain
+char kernel_stack[KERNEL_STACK_SIZE] __attribute__ ((aligned (4096))) = {0};
+
+
+/*** Kernel data area end ***/
 
 void putchar(char c)
 {
@@ -39,5 +49,5 @@ void kmain (void)
 
 	print("Hello, World!");
 
-    while(1) {}
+    //while(1) {}
 }

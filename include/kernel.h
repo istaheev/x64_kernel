@@ -8,4 +8,7 @@
 // Size of the kernel stack
 #define KERNEL_STACK_SIZE 0x2000
 
+// Returns physical address of a pointer located in the higher half
+#define PHYS_ADDR(x) (x - KERNEL_VMA)
+
 #endif

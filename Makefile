@@ -25,7 +25,11 @@ CFLAGS = -g \
          -mno-3dnow \
          -mcmodel=kernel \
          -Iinclude
-LDFLAGS = -nostdlib -z max-page-size=0x1000 -n -T src/linker.ld
+
+LDFLAGS = -n \
+	      -nostdlib \
+		  -z max-page-size=0x1000 \
+		  -T src/linker.ld
 
 # Rules
 
