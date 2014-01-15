@@ -2,36 +2,16 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include <stdlib.h>
 #include <kernel.h>
-
-static char* videomem = (char*)0xB8000;
-static size_t screen_x = 0, screen_y = 0;
+#include <video.h>
 
 /*** Kernel data area begin ***/
 
 // Kernel stack, initialized in bootstrap.S before call to kmain
 char kernel_stack[KERNEL_STACK_SIZE] __attribute__ ((aligned (4096))) = {0};
 
-
 /*** Kernel data area end ***/
-
-void putchar(char c)
-{
-	videomem[screen_y * 160 + screen_x*2] = c;
-	screen_x++;
-	if (screen_x >= 80)
-	{
-		screen_x = 0;
-		screen_y++;
-	}
-}
-
-void print(const char* str)
-{
-	const char* s;
-	for(s = str; *s; s++)
-		putchar(*s);
-}
 
 /* Entry point for kernel, called from bootstrap.S 
    after preparing of the environment.
@@ -44,10 +24,15 @@ void print(const char* str)
 */      
 void kmain (void)
 {
-	char* p = (char*)0xB8000;
-	*p = '!';
+	int i;
+	char num[10];
 
-	print("Hello, World!");
+	video_init ();
 
-    //while(1) {}
+	for ( i = 0; i < 30; i++ )
+	{
+		video_putstr ( "Line: " );
+		video_putstr ( itoa( i + 1, num, 10 ) );
+		video_putstr ( "\n" );
+	}
 }
