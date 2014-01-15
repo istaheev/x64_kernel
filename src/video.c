@@ -2,8 +2,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include <asm.h>
 #include <stdlib.h>
-#include <hal.h>
 #include <video.h>
 
 typedef uint16_t video_cell_t;
@@ -32,10 +32,10 @@ static
 void video_place_cursor_on_screen ( void )
 {
 	uint16_t position = LINEAR_CURSOR_POS;
-	hal_outb ( 0x3D4, 0x0F );
-	hal_outb ( 0x3D5, position & 0xFF );
-	hal_outb ( 0x3D4, 0x0E );
-	hal_outb ( 0x3D5, (position >> 8) & 0xFF );
+	outportb ( 0x3D4, 0x0F );
+	outportb ( 0x3D5, position & 0xFF );
+	outportb ( 0x3D4, 0x0E );
+	outportb ( 0x3D5, (position >> 8) & 0xFF );
 }
 
 static

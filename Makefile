@@ -1,6 +1,8 @@
 .PHONY: all image clean
 
 # Input files
+INCLUDE = $(wildcard include/*.h)
+
 C_SRC = $(wildcard src/*.c)
 C_OBJS = ${C_SRC:src/%.c=obj/%.o}
 
@@ -38,10 +40,10 @@ all: image
 bin/kernel: src/linker.ld Makefile $(OBJS)
 	ld $(LDFLAGS) -o bin/kernel $(OBJS)
 
-obj/%.o: src/%.c
+obj/%.o: src/%.c $(INCLUDE)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-obj/%.o: src/%.S
+obj/%.o: src/%.S $(INCLUDE)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 image: bin/kernel image/boot/grub/grub.cfg

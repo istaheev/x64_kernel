@@ -2,8 +2,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include <stdlib.h>
+#include <asm.h>
 #include <kernel.h>
+#include <stdlib.h>
 #include <video.h>
 
 /*** Kernel data area begin ***/
@@ -34,5 +35,10 @@ void kmain (void)
 		video_putstr ( "Line: " );
 		video_putstr ( itoa( i + 1, num, 10 ) );
 		video_putstr ( "\n" );
+	}
+
+	while(1)
+	{
+		halt ();
 	}
 }
