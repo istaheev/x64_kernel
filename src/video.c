@@ -20,12 +20,33 @@ static uint8_t current_attr;
 #define CHAR_REPR( c, attr ) ( ((video_cell_t)attr) << 8 | (c & 0xFF))
 
 static 
+void video_clear_region ( int start_pos, int chars_count )
+{
+	video_cell_t * ptr;
+
+	if ( start_pos < 0 )
+		return;
+
+	if ( start_pos + chars_count > SCREEN_W * SCREEN_H )
+		return;
+
+	ptr = video_memory + start_pos;
+
+	while ( chars_count > 0 )
+	{
+		*ptr = CHAR_REPR(0x20, 0x07);
+		ptr++;
+		chars_count--;
+	}
+}
+
+static 
 void video_scroll_up ( uint16_t lines )
 {
 	uint16_t offset = lines * SCREEN_W;
 	uint16_t lines_to_move = max( SCREEN_H - lines, 0 );
-	memcpy ( video_memory, video_memory + offset, lines_to_move * SCREEN_W * 2 );
-	memset16 ( video_memory + lines_to_move * SCREEN_W, CHAR_REPR(0x20, 0x07), offset );
+	memmove ( video_memory, video_memory + offset, lines_to_move * SCREEN_W * 2 );
+	video_clear_region ( lines_to_move * SCREEN_W, offset );
 }
 
 static
@@ -79,7 +100,7 @@ void video_init ( void )
 
 void video_clear_screen ( void )
 {
-	memset16(video_memory, CHAR_REPR(0x20, 0x07), SCREEN_W * SCREEN_H / 2);
+	video_clear_region ( 0, SCREEN_W * SCREEN_H );
 	cursor_x = cursor_y = 0;
 	video_place_cursor_on_screen();
 }

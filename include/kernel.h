@@ -11,4 +11,10 @@
 // Returns physical address of a pointer located in the higher half
 #define PHYS_ADDR(x) (x - KERNEL_VMA)
 
-#endif
+#ifndef ASM_FILE
+
+void kprint(const char *, ...);
+
+#endif // ASM_FILE
+
+#endif // __KERNEL_H__

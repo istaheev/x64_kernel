@@ -3,7 +3,9 @@
 #include <multiboot.h>
 #include <kernel.h>
 
-#define MULTIBOOT_HEADER_FLAGS  0x00010003
+#define MULTIBOOT_HEADER_FLAGS  MULTIBOOT_AOUT_KLUDGE | \
+                                MULTIBOOT_PAGE_ALIGN  | \
+                                MULTIBOOT_MEMORY_INFO
 
         .text
 
@@ -49,6 +51,8 @@ gdt_32_ready:
         mov     %ax, %ds
         mov     %ax, %es
         mov     %ax, %ss
+
+/* Copy multiboot info to the kernel memory */
 
 /* Setup page tables: identity map for first 1Gb 
    and map 1Gb from 0xFFFFFFFF80000000 to the first 1 Gb */
@@ -127,6 +131,8 @@ code_64:
 
 /* Call kernel entry point located in the higher half memory */
 
+        // rbx points to multiboot info structure, pass it as the first parameter to kmain
+        mov     %rbx, %rdi
         call    kmain
 
 halt:   hlt

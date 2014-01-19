@@ -14,22 +14,26 @@ OBJS = $(C_OBJS) $(S_OBJS)
 # Compilation flags
 
 CC = gcc
-CFLAGS = -g \
-	     -nostdlib \
-         -fno-exceptions \
-         -ffreestanding \
+CFLAGS = -g                   \
+	     -std=c99             \
+	     -pedantic            \
+		 -Wall                \
+		 -Wextra              \
+	     -nostdlib            \
+         -fno-exceptions      \
+         -ffreestanding       \
          -fno-stack-protector \
-         -mno-red-zone \
-         -mno-mmx \
-         -mno-sse \
-         -mno-sse2 \
-         -mno-sse3 \
-         -mno-3dnow \
-         -mcmodel=kernel \
+         -mno-red-zone        \
+         -mno-mmx             \
+         -mno-sse             \
+         -mno-sse2            \
+         -mno-sse3            \
+         -mno-3dnow           \
+         -mcmodel=kernel      \
          -Iinclude
 
-LDFLAGS = -n \
-	      -nostdlib \
+LDFLAGS = -n                      \
+	      -nostdlib               \
 		  -z max-page-size=0x1000 \
 		  -T src/linker.ld
 

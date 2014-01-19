@@ -3,6 +3,9 @@
 
 #include <stdint.h>
 
+// C99 doesn't support asm
+#define asm __asm__
+
 static inline 
 void outportb( uint16_t port, uint8_t value )
 {
