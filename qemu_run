@@ -1,2 +1,2 @@
 #!/bin/sh
-qemu-system-x86_64 -cdrom image.iso -net none -s
+qemu-system-x86_64 -m 512M -cdrom image.iso -net none -s

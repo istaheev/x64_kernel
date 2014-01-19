@@ -15,6 +15,8 @@ SECTIONS
 
     . += KERNEL_VMA;
 
+    __link_kernel_begin_vaddr = .;
+
     .text ALIGN(0x1000) : AT(ADDR(.text) - KERNEL_VMA)
     {
         *(.text)
@@ -35,6 +37,8 @@ SECTIONS
     }
 
     __link_bss_end = . - KERNEL_VMA;
+
+    __link_kernel_end_vaddr = .;
 
     /DISCARD/ :
     {

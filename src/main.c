@@ -63,6 +63,19 @@ void kprint(const char * format, ...)
     	video_putstr ( kprint_buf );
 }
 
+static
+void display_kernel_info ()
+{
+	kprint ( "Kernel placement:\n" );
+	kprint ( "Physical: 0x%llx - 0x%llx (%lu bytes)\n", 
+		PHYS_ADDR(__link_kernel_begin_vaddr), 
+		PHYS_ADDR(__link_kernel_end_vaddr),
+		__link_kernel_end_vaddr - __link_kernel_begin_vaddr );
+	kprint ( "Virtual : 0x%016lx - 0x%016lx\n\n", 
+		__link_kernel_begin_vaddr, 
+		__link_kernel_end_vaddr );
+}
+
 /* Entry point for kernel, called from bootstrap.S 
    after preparing of the environment.
 
@@ -74,14 +87,25 @@ void kprint(const char * format, ...)
 */      
 void kmain ( const multiboot_info_t* mbi )
 {
+	//unsigned int t = 0xf0000000;
 	video_init ();
 
-	kprint ( "sizeof(unsigned int) = %u\n", sizeof(unsigned int) );
-	kprint ( "sizeof(unsigned long) = %u\n", sizeof(unsigned long) );
-	kprint ( "sizeof(unsigned long long) = %u\n", sizeof(unsigned long long) );
-	kprint ( "sizeof(void*) = %u\n", sizeof(void*) );
-	kprint ( "sizeof(intptr_t) = %u\n", sizeof(intptr_t) );
+//	kprint ( "sizeof(unsigned int) = %u\n", sizeof(unsigned int) );
+//	kprint ( "sizeof(unsigned long) = %u\n", sizeof(unsigned long) );
+//	kprint ( "sizeof(unsigned long long) = %u\n", sizeof(unsigned long long) );
+//	kprint ( "sizeof(void*) = %u\n", sizeof(void*) );
+//	kprint ( "sizeof(intptr_t) = %u\n", sizeof(intptr_t) );
 
+//  sprintf tests:
+//	kprint ( "\n" );
+//	kprint ( "0xffffffff = %u\n", t );
+//	kprint ( "0xffffffff = 0x%lx\n", (unsigned long)0xfffffffe );
+//	kprint ( "0xffffffff = 0x%llx\n", (unsigned long long)0xfffffffe );
+//	kprint ( "0xffffffffffffffff = 0x%x\n", (unsigned int)0xffffffffffffffff );
+//	kprint ( "0xffffffffffffffff = 0x%lx\n", (unsigned long)0xffffffffffffffff );
+//	kprint ( "0xffffffffffffffff = 0x%llx\n", (unsigned long long)0xffffffffffffffff );
+
+	display_kernel_info ();
 	display_mbi ( mbi );
 
 	while(1)

@@ -13,6 +13,9 @@
 
 #ifndef ASM_FILE
 
+extern char __link_kernel_begin_vaddr[];
+extern char __link_kernel_end_vaddr[];
+
 void kprint(const char *, ...);
 
 #endif // ASM_FILE
