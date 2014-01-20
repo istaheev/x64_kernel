@@ -114,10 +114,6 @@ page_tables_ready:
         .code64
 
 code_64:
-        // Load same GDT but using address in higher-half memory 
-        // so lower memory can be unmapped later
-        lgdt    gdt_64_ptr
-
         movl    $0x10, %eax
         movl    %eax, %ds
         movl    %eax, %es
@@ -152,8 +148,8 @@ gdt_32_ptr:
         .long   gdt_32
 
 gdt_64_ptr_compatibility_mode:
-        .word   23
-        .long   PHYS_ADDR(gdt_64)
+        .word   GDT_ENTRIES_COUNT * 8 - 1
+        .long   PHYS_ADDR(gdt)
 
         .align 4096
 
@@ -165,16 +161,3 @@ page_dir_ptr:
         .fill   0x1000, 8, 0
 page_dir:
         .fill   0x1000, 8, 0
-
-        .data
-
-        .align 8
-
-gdt_64:
-        .quad   0x0000000000000000
-        .quad   0x00A09A0000000000
-        .quad   0x00A0920000000000
-
-gdt_64_ptr:
-        .word   23
-        .quad   gdt_64

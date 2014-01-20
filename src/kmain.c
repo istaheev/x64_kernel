@@ -8,12 +8,51 @@
 #include <stdlib.h>
 #include <video.h>
 
-/*** Kernel data area begin ***/
-
 // Kernel stack, initialized in bootstrap.S before call to kmain
 char kernel_stack[KERNEL_STACK_SIZE] __attribute__ ((aligned (4096))) = {0};
 
-/*** Kernel data area end ***/
+// GDT used in 64-bit mode:
+// 0x00 - null
+// 0x08 - code
+// 0x10 - data
+segment_descriptor_entry_t gdt[GDT_ENTRIES_COUNT] __attribute__ ((aligned (8))) = 
+    { /* 0x00: NULL */
+      {.u.value = 0x0} 
+      /* 0x08: code */
+    , {.u.desc = { .limit_low       = 0x0
+                 , .base_low        = 0x0
+                 , .seg_type        = SEG_TYPE_CODE | SEG_TYPE_CODE_READ_EXECUTE
+                 , .desc_type       = DESC_TYPE_CODE_DATA
+                 , .privilege_level = 0
+                 , .present         = 0x1
+                 , .limit_high      = 0x0
+                 , .available       = 0x0
+                 , .code_size       = SEG_CODE_64
+                 , .op_size         = SEG_OP_SIZE_16
+                 , .granularity     = SEG_GRAN_4KB
+                 , .base_high       = 0x0
+             }}
+      /* 0x10: data */
+    , {.u.desc = { .limit_low       = 0x0
+                 , .base_low        = 0x0
+                 , .seg_type        = SEG_TYPE_DATA | SEG_TYPE_DATA_READ_WRITE
+                 , .desc_type       = DESC_TYPE_CODE_DATA
+                 , .privilege_level = 0
+                 , .present         = 0x1
+                 , .limit_high      = 0x0
+                 , .available       = 0x0
+                 , .code_size       = SEG_CODE_64
+                 , .op_size         = SEG_OP_SIZE_16
+                 , .granularity     = SEG_GRAN_4KB
+                 , .base_high       = 0x0
+             }}
+    };
+
+static 
+void gdt_init ()
+{
+    load_gdt ( GDT_ENTRIES_COUNT, &gdt );
+}
 
 static 
 void display_kprint_test ()
@@ -24,14 +63,15 @@ void display_kprint_test ()
     kprint ( "sizeof(unsigned long long) = %u\n", sizeof(unsigned long long) );
     kprint ( "sizeof(void*) = %u\n", sizeof(void*) );
     kprint ( "sizeof(intptr_t) = %u\n", sizeof(intptr_t) );
-
     kprint ( "\n" );
+
     kprint ( "0xffffffff = %u\n", t );
     kprint ( "0xffffffff = 0x%lx\n", (unsigned long)0xfffffffe );
     kprint ( "0xffffffff = 0x%llx\n", (unsigned long long)0xfffffffe );
     kprint ( "0xffffffffffffffff = 0x%x\n", (unsigned int)0xffffffffffffffff );
     kprint ( "0xffffffffffffffff = 0x%lx\n", (unsigned long)0xffffffffffffffff );
     kprint ( "0xffffffffffffffff = 0x%llx\n", (unsigned long long)0xffffffffffffffff );
+    kprint ( "\n" );
 }
 
 static
@@ -86,9 +126,12 @@ void display_mbi ( const multiboot_info_t* mbi )
 */      
 void kmain ( const multiboot_info_t* mbi )
 {
+    // reload GDT using its virtual address so that lower memory can be unmapped
+    gdt_init ();
+
     video_init ();
 
-    display_kprint_test ();
+    //display_kprint_test ();
     display_kernel_info ();
     display_mbi ( mbi );
 
