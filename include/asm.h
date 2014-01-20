@@ -34,7 +34,7 @@ void load_gdt ( uint16_t num_entries, const void * gdt )
 	struct gdt_ptr gdt_ptr = { num_entries * 8 - 1, (uint64_t)gdt };
 
     asm volatile( "lgdt (%0)"
-                  : : "p"(&gdt_ptr) );
+                  : : "r"(&gdt_ptr) );
 }
 
 static inline
