@@ -39,7 +39,9 @@ LDFLAGS = -n                      \
 
 # Rules
 
-all: image
+image: bin/kernel image/boot/grub/grub.cfg
+	cp bin/kernel image/kernel
+	grub-mkrescue -o image.iso image
 
 bin/kernel: src/linker.ld Makefile $(OBJS)
 	ld $(LDFLAGS) -o bin/kernel $(OBJS)
@@ -50,14 +52,12 @@ obj/%.o: src/%.c $(INCLUDE)
 obj/%.o: src/%.S $(INCLUDE)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-image: bin/kernel image/boot/grub/grub.cfg
-	cp bin/kernel image/kernel
-	grub-mkrescue -o image.iso image
-
 clean:
 	-rm image.iso
 	-rm bin/kernel
 	-rm obj/*.o
+
+all: clean image
 
 dump: bin/kernel
 	objdump -D bin/kernel
