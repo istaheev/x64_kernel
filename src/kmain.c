@@ -19,34 +19,36 @@ segment_descriptor_entry_t gdt[GDT_ENTRIES_COUNT] __attribute__ ((aligned (8))) 
     { /* 0x00: NULL */
       {.u.value = 0x0} 
       /* 0x08: code */
-    , {.u.desc = { .limit_low       = 0x0
-                 , .base_low        = 0x0
-                 , .seg_type        = SEG_TYPE_CODE | SEG_TYPE_CODE_READ_EXECUTE
-                 , .desc_type       = DESC_TYPE_CODE_DATA
-                 , .privilege_level = 0
-                 , .present         = 0x1
-                 , .limit_high      = 0x0
-                 , .available       = 0x0
-                 , .code_size       = SEG_CODE_64
-                 , .op_size         = SEG_OP_SIZE_16
-                 , .granularity     = SEG_GRAN_4KB
-                 , .base_high       = 0x0
+    , {.u.desc = { .limit_low   = 0x0
+                 , .base_low    = 0x0
+                 , .seg_type    = SEG_TYPE_CODE | SEG_TYPE_CODE_READ_EXECUTE
+                 , .desc_type   = DESC_TYPE_CODE_DATA
+                 , .dpl         = 0
+                 , .present     = 0x1
+                 , .limit_high  = 0x0
+                 , .available   = 0x0
+                 , .code_size   = SEG_CODE_64
+                 , .op_size     = SEG_OP_SIZE_16
+                 , .granularity = SEG_GRAN_4KB
+                 , .base_high   = 0x0
              }}
       /* 0x10: data */
-    , {.u.desc = { .limit_low       = 0x0
-                 , .base_low        = 0x0
-                 , .seg_type        = SEG_TYPE_DATA | SEG_TYPE_DATA_READ_WRITE
-                 , .desc_type       = DESC_TYPE_CODE_DATA
-                 , .privilege_level = 0
-                 , .present         = 0x1
-                 , .limit_high      = 0x0
-                 , .available       = 0x0
-                 , .code_size       = SEG_CODE_64
-                 , .op_size         = SEG_OP_SIZE_16
-                 , .granularity     = SEG_GRAN_4KB
-                 , .base_high       = 0x0
+    , {.u.desc = { .limit_low   = 0x0
+                 , .base_low    = 0x0
+                 , .seg_type    = SEG_TYPE_DATA | SEG_TYPE_DATA_READ_WRITE
+                 , .desc_type   = DESC_TYPE_CODE_DATA
+                 , .dpl         = 0
+                 , .present     = 0x1
+                 , .limit_high  = 0x0
+                 , .available   = 0x0
+                 , .code_size   = SEG_CODE_64
+                 , .op_size     = SEG_OP_SIZE_16
+                 , .granularity = SEG_GRAN_4KB
+                 , .base_high   = 0x0
              }}
     };
+
+idt_descriptor_t idt[IDT_ENTRIES_COUNT];
 
 static 
 void gdt_init ()
@@ -115,6 +117,94 @@ void display_mbi ( const multiboot_info_t* mbi )
     }
 }
 
+// defined in interrupts.S
+void trap_entry (void);
+void intr_entry (void);
+
+static
+void pic_end_of_interrupt ( bool slave )
+{
+    if ( slave )
+        outportb ( 0xa0, 0x20 );
+    outportb ( 0x20, 0x20 );
+}
+
+static
+void pic_init ( uint8_t irq0_start, uint8_t irq8_start )
+{
+    outportb ( 0x20, 0x11 );
+    outportb ( 0xa0, 0x11 );
+
+    // map irq numbers
+    outportb ( 0x21, irq0_start );
+    outportb ( 0xa1, irq8_start );
+
+    // setup master/slave wiring
+    outportb ( 0x21, 0x04 );
+    outportb ( 0xa1, 0x02 );
+
+    outportb ( 0x21, 0x01 );
+    outportb ( 0xa1, 0x01 );
+}
+
+static
+void pic_mask ( uint16_t mask )
+{
+    outportb ( 0x21, 0x01 );
+    outportb ( 0xa1, 0x01 );
+
+    outportb ( 0x21, mask & 0xff );
+    outportb ( 0xa1, (mask >> 8) & 0xff );
+}
+
+static 
+void idt_entry_set ( idt_descriptor_t * entry, uintptr_t handlerp, unsigned int type, unsigned int selector, unsigned int dpl )
+{
+    uintptr_t handler_uintptr = (uintptr_t) handlerp;
+
+    entry->offset_0_15  = handler_uintptr & 0xFFFF;
+    entry->offset_16_31 = (handler_uintptr >> 16) & 0xFFFF;
+    entry->offset_32_63 = (handler_uintptr >> 32) & 0xFFFFFFFF;
+    entry->seg_selector = selector;
+    entry->type         = type;
+    entry->dpl          = dpl;
+    entry->present      = 1;
+}
+
+static
+void idt_init ()
+{
+    int i;
+
+    memset ( idt, 0, sizeof(idt) );
+
+    for ( i=0; i<20; i++ )
+        idt_entry_set ( &idt[i], (uintptr_t)trap_entry, IDT_TRAP_GATE, 0x08, 0x0 );
+
+    //idt_entry_set ( &idt[0x20], (uintptr_t)intr_entry, IDT_INTR_GATE, 0x08, 0x0 );
+    idt_entry_set ( &idt[0x21], (uintptr_t)intr_entry, IDT_INTR_GATE, 0x08, 0x0 );
+
+    load_idt ( IDT_ENTRIES_COUNT, idt );
+}
+
+// called by intr_entry
+void intr_handler ( void )
+{
+    int scancode = inportb ( 0x60 );
+    kprint ( "%d ", scancode );
+    pic_end_of_interrupt ( false );
+}
+
+static
+void khalt ()
+{
+    kprint ( "Kernel halted." );
+    while (1)
+    {
+        halt ();
+    }
+}
+
 /* Entry point for kernel, called from bootstrap.S 
    after preparing of the environment.
 
@@ -128,16 +218,18 @@ void kmain ( const multiboot_info_t* mbi )
 {
     // reload GDT using its virtual address so that lower memory can be unmapped
     gdt_init ();
+    idt_init ();
+    pic_init ( 0x20, 0x28 );
+    pic_mask ( 0xfffd ); // enable keyboard
+    sti ();
 
+    // initialize video subsystem, so kprint can work (don't call kprint before!)
     video_init ();
 
     //display_kprint_test ();
     display_kernel_info ();
     display_mbi ( mbi );
 
-    while(1)
-    {
-        halt ();
-    }
+    khalt ();
 }
 

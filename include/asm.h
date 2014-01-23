@@ -38,6 +38,33 @@ void load_gdt ( uint16_t num_entries, const void * gdt )
 }
 
 static inline
+void load_idt ( uint16_t num_entries, const void * idt )
+{
+	struct idt_ptr
+	{
+		uint16_t  idt_size;
+		uintptr_t idt;
+	} __attribute__((packed));
+
+	struct idt_ptr idt_ptr = { num_entries * 16 - 1, (uint64_t)idt };
+
+    asm volatile( "lidt (%0)"
+                  : : "r"(&idt_ptr) );
+}
+
+static inline
+void cli ()
+{
+	asm volatile( "cli" );
+}
+
+static inline
+void sti ()
+{
+	asm volatile( "sti" );
+}
+
+static inline
 void halt ()
 {
 	asm volatile( "hlt" );

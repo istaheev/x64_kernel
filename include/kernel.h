@@ -10,6 +10,8 @@
 
 #define GDT_ENTRIES_COUNT 3
 
+#define IDT_ENTRIES_COUNT 0x30
+
 // Returns physical address of a pointer located in the higher half
 #define PHYS_ADDR(x) (x - KERNEL_VMA)
 
@@ -62,7 +64,7 @@ struct segment_descriptor
     unsigned int base_low   : 24;
     unsigned int seg_type    : 4;
     unsigned int desc_type   : 1;
-    unsigned int privilege_level : 2;
+    unsigned int dpl         : 2;
     unsigned int present     : 1;
     unsigned int limit_high  : 4;
     unsigned int available   : 1;
@@ -84,6 +86,28 @@ struct segment_descriptor_entry
 };
 
 typedef struct segment_descriptor_entry segment_descriptor_entry_t;
+
+#define IDT_INTR_GATE 0x0E
+#define IDT_TRAP_GATE 0x0F
+
+struct idt_descriptor
+{
+    unsigned int offset_0_15  : 16;
+    unsigned int seg_selector : 16;
+    unsigned int stack_table  : 3;
+    unsigned int _zero1       : 1;
+    unsigned int _zero2       : 1;
+    unsigned int _zero3       : 3;
+    unsigned int type         : 4;
+    unsigned int _zero4       : 1;
+    unsigned int dpl          : 2;
+    unsigned int present      : 1;
+    unsigned int offset_16_31 : 16;
+    unsigned int offset_32_63 : 32;
+    unsigned int reserved     : 32;
+} __attribute__((packed));
+
+typedef struct idt_descriptor idt_descriptor_t;
 
 void kprint(const char *, ...);
 

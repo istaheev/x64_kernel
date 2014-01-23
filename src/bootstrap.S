@@ -52,11 +52,11 @@ gdt_32_ready:
         mov     %ax, %es
         mov     %ax, %ss
 
-/* Copy multiboot info to the kernel memory */
-
 /* Setup page tables: identity map for first 1Gb 
    and map 1Gb from 0xFFFFFFFF80000000 to the first 1 Gb */
-        
+
+        movl    $page_ml4, %esi
+
         movl    $page_dir_ptr, %eax
         orl     $3, %eax
         movl    %eax, page_ml4              /* page_ml4[0] = page_dir_ptr */
@@ -151,13 +151,12 @@ gdt_64_ptr_compatibility_mode:
         .word   GDT_ENTRIES_COUNT * 8 - 1
         .long   PHYS_ADDR(gdt)
 
-        .align 4096
-
 /* Paging structures used to establish initial memory mapping before the kernel is started */
 
+        .align 4096
 page_ml4:
-        .fill   0x1000, 8, 0
+        .skip   0x1000
 page_dir_ptr:
-        .fill   0x1000, 8, 0
+        .skip   0x1000
 page_dir:
-        .fill   0x1000, 8, 0
+        .skip   0x1000
