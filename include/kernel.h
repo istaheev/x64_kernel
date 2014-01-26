@@ -109,8 +109,94 @@ struct idt_descriptor
 
 typedef struct idt_descriptor idt_descriptor_t;
 
+struct trap_regs
+{
+    uint64_t rax;
+    uint64_t rbx;
+    uint64_t rcx;
+    uint64_t rdx;
+    uint64_t rdi;
+    uint64_t rsi;
+    uint64_t r8;
+    uint64_t r9;
+    uint64_t r10;
+    uint64_t r11;
+    uint64_t r12;
+    uint64_t r13;
+    uint64_t r14;
+    uint64_t r15;
+    uint64_t rbp;
+    uint64_t ds;
+    uint64_t es;
+    uint64_t fs;
+    uint64_t gs;
+    uint64_t trap_no;
+
+    // Stack frame set by CPU
+    uint64_t error_code;
+    uint64_t rip;
+    uint64_t cs;
+    uint64_t rflags;
+    uint64_t rsp;
+    uint64_t ss;
+};
+
+typedef struct trap_regs trap_regs_t;
+
+extern void trap_0 ( void );
+extern void trap_1 ( void );
+extern void trap_2 ( void );
+extern void trap_3 ( void );
+extern void trap_4 ( void );
+extern void trap_5 ( void );
+extern void trap_6 ( void );
+extern void trap_7 ( void );
+extern void trap_8 ( void );
+extern void trap_9 ( void );
+extern void trap_10 ( void );
+extern void trap_11 ( void );
+extern void trap_12 ( void );
+extern void trap_13 ( void );
+extern void trap_14 ( void );
+extern void trap_15 ( void );
+extern void trap_16 ( void );
+extern void trap_17 ( void );
+extern void trap_18 ( void );
+extern void trap_19 ( void );
+extern void trap_20 ( void );
+
+extern void interrupt_entry ( void );
+
 void kprint(const char *, ...);
 
 #endif // ASM_FILE
+
+// Offsets of fields in trap_regs
+#define TRAP_REGS_RAX           0x0000
+#define TRAP_REGS_RBX           0x0008
+#define TRAP_REGS_RCX           0x0010
+#define TRAP_REGS_RDX           0x0018
+#define TRAP_REGS_RDI           0x0020
+#define TRAP_REGS_RSI           0x0028
+#define TRAP_REGS_R8            0x0030
+#define TRAP_REGS_R9            0x0038
+#define TRAP_REGS_R10           0x0040
+#define TRAP_REGS_R11           0x0048
+#define TRAP_REGS_R12           0x0050
+#define TRAP_REGS_R13           0x0058
+#define TRAP_REGS_R14           0x0060
+#define TRAP_REGS_R15           0x0068
+#define TRAP_REGS_RBP           0x0070
+#define TRAP_REGS_DS            0x0078
+#define TRAP_REGS_ES            0x0080
+#define TRAP_REGS_FS            0x0088
+#define TRAP_REGS_GS            0x0090
+#define TRAP_REGS_TRAP_NO       0x0098
+#define TRAP_REGS_ERROR_CODE    0x00a0
+#define TRAP_REGS_RIP           0x00a8
+#define TRAP_REGS_CS            0x00b0
+#define TRAP_REGS_RFLAGS        0x00b8
+#define TRAP_REGS_RSP           0x00c0
+#define TRAP_REGS_SS            0x00c8
 
 #endif // __KERNEL_H__

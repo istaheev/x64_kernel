@@ -20,6 +20,7 @@ CFLAGS = -g                   \
 		 -Wall                \
 		 -Wextra              \
 	     -nostdlib            \
+	     -fomit-frame-pointer \
          -fno-exceptions      \
          -ffreestanding       \
          -fno-stack-protector \
