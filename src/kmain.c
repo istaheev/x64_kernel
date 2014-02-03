@@ -119,10 +119,9 @@ void display_mbi ( const multiboot_info_t* mbi )
 }
 
 static
-void pic_end_of_interrupt ( bool slave )
+void pic_end_of_interrupt ( void )
 {
-    if ( slave )
-        outportb ( 0xa0, 0x20 );
+    outportb ( 0xa0, 0x20 );
     outportb ( 0x20, 0x20 );
 }
 
@@ -157,11 +156,9 @@ void pic_mask ( uint16_t mask )
 static 
 void idt_entry_set ( idt_descriptor_t * entry, uintptr_t handlerp, unsigned int type, unsigned int selector, unsigned int dpl )
 {
-    uintptr_t handler_uintptr = (uintptr_t) handlerp;
-
-    entry->offset_0_15  = handler_uintptr & 0xFFFF;
-    entry->offset_16_31 = (handler_uintptr >> 16) & 0xFFFF;
-    entry->offset_32_63 = (handler_uintptr >> 32) & 0xFFFFFFFF;
+    entry->offset_0_15  = handlerp & 0xFFFF;
+    entry->offset_16_31 = (handlerp >> 16) & 0xFFFF;
+    entry->offset_32_63 = (handlerp >> 32) & 0xFFFFFFFF;
     entry->seg_selector = selector;
     entry->type         = type;
     entry->dpl          = dpl;
@@ -213,6 +210,7 @@ void trap_handler ( trap_regs_t * regs )
     halt();
 }
 
+__attribute__((unused))
 static
 uint16_t pic_get_irr ( void )
 {
@@ -244,7 +242,7 @@ void interrupt_handler ( trap_regs_t * regs __attribute__((unused)) )
         kprint ( "." );
     }
 
-    pic_end_of_interrupt ( false );
+    pic_end_of_interrupt ();
 }
 
 static
@@ -284,7 +282,7 @@ void kmain ( const multiboot_info_t* mbi )
 
     idt_init ();
     pic_init ( 0x20, 0x28 );
-    pic_mask ( 0xfffc ); // enable keyboard
+    pic_mask ( 0xfffc ); // enable keyboard and timer
     sti ();
 
     // display_kprint_test ();
@@ -294,4 +292,3 @@ void kmain ( const multiboot_info_t* mbi )
     // simulate_page_fault ();
     khalt ();
 }
-

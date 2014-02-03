@@ -36,7 +36,8 @@ CFLAGS = -g                   \
 LDFLAGS = -n                      \
 	      -nostdlib               \
 		  -z max-page-size=0x1000 \
-		  -T src/linker.ld
+		  -T src/linker.ld        \
+		  -Map bin/kernel.map
 
 # Rules
 
